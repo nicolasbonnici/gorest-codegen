@@ -79,7 +79,9 @@ func GenerateStructs(tables map[string]TableSchema) {
 	if err != nil {
 		log.Fatalf("failed to get models path: %v", err)
 	}
-	os.MkdirAll(modelsDir, 0755)
+	if err := os.MkdirAll(modelsDir, 0755); err != nil {
+		log.Fatalf("failed to create models directory: %v", err)
+	}
 
 	for _, table := range tables {
 		singularTable := singularize(table.TableName)
@@ -141,7 +143,9 @@ func GenerateOpenAPI(tables map[string]TableSchema) {
 	if err != nil {
 		log.Fatalf("failed to get OpenAPI path: %v", err)
 	}
-	os.MkdirAll(apiDir, 0755)
+	if err := os.MkdirAll(apiDir, 0755); err != nil {
+		log.Fatalf("failed to create OpenAPI directory: %v", err)
+	}
 	filePath := filepath.Join(apiDir, "openapi_gen.go")
 
 	var b strings.Builder
@@ -155,7 +159,9 @@ func GenerateOpenAPI(tables map[string]TableSchema) {
 		b.WriteString(fmt.Sprintf("type %sResource struct {}\n\n", resource))
 	}
 
-	os.WriteFile(filePath, []byte(b.String()), 0644)
+	if err := os.WriteFile(filePath, []byte(b.String()), 0644); err != nil {
+		log.Fatalf("failed to write OpenAPI file: %v", err)
+	}
 	fmt.Printf("✅ Generated OpenAPI resource stubs → %s\n", filePath)
 }
 

@@ -78,7 +78,9 @@ func getModuleName() string {
 	if err != nil {
 		return "github.com/nicolasbonnici/gorest"
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {

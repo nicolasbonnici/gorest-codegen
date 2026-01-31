@@ -69,7 +69,7 @@ func getDefaultMethods(cfg *config.Config) map[string]bool {
 	}
 
 	// Override with codegen.auth.defaults if specified
-	if cfg.Codegen.Auth.Defaults != nil && len(cfg.Codegen.Auth.Defaults) > 0 {
+	if len(cfg.Codegen.Auth.Defaults) > 0 {
 		for method, requireAuth := range cfg.Codegen.Auth.Defaults {
 			defaults[method] = requireAuth
 		}
