@@ -32,7 +32,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Database connection failed: %v\n", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close database: %v\n", err)
+		}
+	}()
 
 	// Initialize plugin
 	p := codegen.NewPlugin()
