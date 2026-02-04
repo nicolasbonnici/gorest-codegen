@@ -98,16 +98,17 @@ func generateResourceFromModel(structName string, fields []StructField, authCfg 
 
 	conversionFuncs := generateConversionFunctions(structName, fields)
 
-	var allowedFieldsList []string
+	// Generate field mapping from JSON field names to DB column names
+	var fieldMappingPairs []string
 	for _, field := range fields {
-		if field.DBTag != "" {
+		if field.DBTag != "" && field.JSONTag != "" {
 			if field.DBTag == "password" || field.DTOTag == "write" {
 				continue
 			}
-			allowedFieldsList = append(allowedFieldsList, fmt.Sprintf(`"%s"`, field.DBTag))
+			fieldMappingPairs = append(fieldMappingPairs, fmt.Sprintf(`"%s": "%s"`, field.JSONTag, field.DBTag))
 		}
 	}
-	allowedFieldsStr := strings.Join(allowedFieldsList, ", ")
+	fieldMappingStr := strings.Join(fieldMappingPairs, ", ")
 
 	projectRoot, _ := findProjectRoot()
 	hookFilePath := filepath.Join(projectRoot, "hooks", lowerStructName+".go")
@@ -207,7 +208,8 @@ func (r *%sResource) List(c *fiber.Ctx) error {
 	offset := (page - 1) * limit
 	includeCount := c.Query("count", "true") != "false"
 
-	allowedFields := []string{%s}
+	// Field mapping: JSON field name -> DB column name
+	fieldMapping := map[string]string{%s}
 
 	queryParams := make(url.Values)
 	c.Context().QueryArgs().VisitAll(func(key, value []byte) {
@@ -215,14 +217,14 @@ func (r *%sResource) List(c *fiber.Ctx) error {
 	})
 
 	// Parse filters into conditions
-	filters := filter.NewFilterSet(allowedFields, r.DB.Dialect())
+	filters := filter.NewFilterSetWithMapping(fieldMapping, r.DB.Dialect())
 	if err := filters.ParseFromQuery(queryParams); err != nil {
 		return pagination.SendPaginatedError(c, 400, err.Error())
 	}
 	conditions := filters.Conditions()
 
 	// Parse ordering into OrderBy clauses
-	ordering := filter.NewOrderSet(allowedFields)
+	ordering := filter.NewOrderSetWithMapping(fieldMapping)
 	if err := ordering.ParseFromQuery(queryParams); err != nil {
 		return pagination.SendPaginatedError(c, 400, err.Error())
 	}
@@ -369,7 +371,7 @@ func (r *%sResource) Delete(c *fiber.Ctx) error {
 		listRoute, getRoute, postRoute, putRoute, deleteRoute,
 		conversionFuncs,
 		structName, structName, structName, pluralResourceName, structName,
-		allowedFieldsStr,
+		fieldMappingStr,
 		contextFunc,
 		structName, structName,
 		structName, structName, structName, structName, pluralResourceName, structName,
