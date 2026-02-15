@@ -1,0 +1,22 @@
+# errcheck exclusions for acceptable unchecked errors
+
+# Defer cleanup operations
+(*.Close)
+defer
+
+# Buffer operations that rarely fail
+(*bytes.Buffer).Write
+(*bytes.Buffer).WriteByte
+(*bytes.Buffer).WriteRune
+(*bytes.Buffer).WriteString
+
+# String builder operations
+(*strings.Builder).Write
+(*strings.Builder).WriteByte
+(*strings.Builder).WriteRune
+(*strings.Builder).WriteString
+
+# Print operations
+fmt.Fprint
+fmt.Fprintf
+fmt.Fprintln
