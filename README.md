@@ -286,6 +286,20 @@ DATABASE_URL_TEST="sqlite::memory:" go test -tags=integration ./codegen
 
 ---
 
+
+## Development Environment
+
+To set up your development environment:
+
+```bash
+make install
+```
+
+This will:
+- Install Go dependencies
+- Install development tools (golangci-lint)
+- Set up git hooks (pre-commit linting and tests)
+
 ## Git Hooks
 
 This directory contains git hooks for the GoREST plugin to maintain code quality.
