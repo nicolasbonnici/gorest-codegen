@@ -44,6 +44,63 @@ func parseStructs(path string) []string {
 	return structs
 }
 
+func extractFieldType(fieldType ast.Expr) (typeName string, isPointer bool) {
+	switch t := fieldType.(type) {
+	case *ast.Ident:
+		return t.Name, false
+	case *ast.StarExpr:
+		if ident, ok := t.X.(*ast.Ident); ok {
+			return ident.Name, true
+		}
+		if sel, ok := t.X.(*ast.SelectorExpr); ok {
+			if pkg, ok := sel.X.(*ast.Ident); ok {
+				return pkg.Name + "." + sel.Sel.Name, true
+			}
+		}
+		return "", true
+	case *ast.SelectorExpr:
+		if pkg, ok := t.X.(*ast.Ident); ok {
+			return pkg.Name + "." + t.Sel.Name, false
+		}
+	case *ast.InterfaceType:
+		return "interface{}", false
+	case *ast.MapType:
+		return "map[string]interface{}", false
+	}
+	return "", false
+}
+
+func extractFieldTags(field *ast.Field) (jsonTag, dbTag, dtoTag string) {
+	if field.Tag == nil {
+		return "", "", ""
+	}
+	tag := field.Tag.Value
+	jsonTag = extractTag(tag, "json")
+	jsonTag = strings.Split(jsonTag, ",")[0]
+	dbTag = extractTag(tag, "db")
+	dtoTag = extractTag(tag, "dto")
+	return
+}
+
+func processStructField(field *ast.Field) *StructField {
+	if len(field.Names) == 0 {
+		return nil
+	}
+
+	fieldName := field.Names[0].Name
+	fieldType, isPointer := extractFieldType(field.Type)
+	jsonTag, dbTag, dtoTag := extractFieldTags(field)
+
+	return &StructField{
+		Name:      fieldName,
+		Type:      fieldType,
+		JSONTag:   jsonTag,
+		DBTag:     dbTag,
+		DTOTag:    dtoTag,
+		IsPointer: isPointer,
+	}
+}
+
 func extractStructFields(path string, structName string) []StructField {
 	fs := token.NewFileSet()
 	node, err := parser.ParseFile(fs, path, nil, parser.AllErrors)
@@ -68,54 +125,9 @@ func extractStructFields(path string, structName string) []StructField {
 				continue
 			}
 			for _, field := range st.Fields.List {
-				if len(field.Names) == 0 {
-					continue
+				if processedField := processStructField(field); processedField != nil {
+					fields = append(fields, *processedField)
 				}
-				fieldName := field.Names[0].Name
-				fieldType := ""
-				isPointer := false
-
-				switch t := field.Type.(type) {
-				case *ast.Ident:
-					fieldType = t.Name
-				case *ast.StarExpr:
-					isPointer = true
-					if ident, ok := t.X.(*ast.Ident); ok {
-						fieldType = ident.Name
-					} else if sel, ok := t.X.(*ast.SelectorExpr); ok {
-						if pkg, ok := sel.X.(*ast.Ident); ok {
-							fieldType = pkg.Name + "." + sel.Sel.Name
-						}
-					}
-				case *ast.SelectorExpr:
-					if pkg, ok := t.X.(*ast.Ident); ok {
-						fieldType = pkg.Name + "." + t.Sel.Name
-					}
-				case *ast.InterfaceType:
-					fieldType = "interface{}"
-				case *ast.MapType:
-					fieldType = "map[string]interface{}"
-				}
-
-				jsonTag := ""
-				dbTag := ""
-				dtoTag := ""
-				if field.Tag != nil {
-					tag := field.Tag.Value
-					jsonTag = extractTag(tag, "json")
-					jsonTag = strings.Split(jsonTag, ",")[0]
-					dbTag = extractTag(tag, "db")
-					dtoTag = extractTag(tag, "dto")
-				}
-
-				fields = append(fields, StructField{
-					Name:      fieldName,
-					Type:      fieldType,
-					JSONTag:   jsonTag,
-					DBTag:     dbTag,
-					DTOTag:    dtoTag,
-					IsPointer: isPointer,
-				})
 			}
 		}
 	}
@@ -138,55 +150,9 @@ func extractStructFieldsFromAST(st *ast.StructType) []StructField {
 	var fields []StructField
 
 	for _, field := range st.Fields.List {
-		if len(field.Names) == 0 {
-			continue
+		if processedField := processStructField(field); processedField != nil {
+			fields = append(fields, *processedField)
 		}
-
-		fieldName := field.Names[0].Name
-		fieldType := ""
-		isPointer := false
-
-		switch t := field.Type.(type) {
-		case *ast.Ident:
-			fieldType = t.Name
-		case *ast.StarExpr:
-			isPointer = true
-			if ident, ok := t.X.(*ast.Ident); ok {
-				fieldType = ident.Name
-			} else if sel, ok := t.X.(*ast.SelectorExpr); ok {
-				if pkg, ok := sel.X.(*ast.Ident); ok {
-					fieldType = pkg.Name + "." + sel.Sel.Name
-				}
-			}
-		case *ast.SelectorExpr:
-			if pkg, ok := t.X.(*ast.Ident); ok {
-				fieldType = pkg.Name + "." + t.Sel.Name
-			}
-		case *ast.InterfaceType:
-			fieldType = "interface{}"
-		case *ast.MapType:
-			fieldType = "map[string]interface{}"
-		}
-
-		jsonTag := ""
-		dbTag := ""
-		dtoTag := ""
-		if field.Tag != nil {
-			tag := field.Tag.Value
-			jsonTag = extractTag(tag, "json")
-			jsonTag = strings.Split(jsonTag, ",")[0]
-			dbTag = extractTag(tag, "db")
-			dtoTag = extractTag(tag, "dto")
-		}
-
-		fields = append(fields, StructField{
-			Name:      fieldName,
-			Type:      fieldType,
-			JSONTag:   jsonTag,
-			DBTag:     dbTag,
-			DTOTag:    dtoTag,
-			IsPointer: isPointer,
-		})
 	}
 
 	return fields

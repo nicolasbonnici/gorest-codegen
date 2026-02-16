@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/nicolasbonnici/gorest/config"
 )
 
 func generateRouteWithAuth(method, path, handler, resource, httpMethod string, authCfg *AuthConfig) string {
@@ -44,61 +46,26 @@ func generateResourceForStruct(apiDir string, structName string, authCfg *AuthCo
 	log.Printf("🧩 Generated API resource for model: %s → %s", structName, resourceFile)
 }
 
-func generateResourceFromModel(structName string, fields []StructField, authCfg *AuthConfig) string {
-	resourceName := strings.ToLower(structName)
-	lowerStructName := strings.ToLower(structName)
-	pluralResourceName := Pluralize(resourceName)
-
-	// Generate routes with conditional auth middleware
-	listRoute := generateRouteWithAuth("Get", pluralResourceName, "res.List", pluralResourceName, "GET", authCfg)
-	getRoute := generateRouteWithAuth("Get", pluralResourceName+"/:id", "res.Get", pluralResourceName, "GET", authCfg)
-	postRoute := generateRouteWithAuth("Post", pluralResourceName, "res.Create", pluralResourceName, "POST", authCfg)
-	putRoute := generateRouteWithAuth("Put", pluralResourceName+"/:id", "res.Update", pluralResourceName, "PUT", authCfg)
-	deleteRoute := generateRouteWithAuth("Delete", pluralResourceName+"/:id", "res.Delete", pluralResourceName, "DELETE", authCfg)
-
-	needsAuthContext := authCfg != nil && (authCfg.RequiresAuth(pluralResourceName, "GET") ||
-		authCfg.RequiresAuth(pluralResourceName, "POST") ||
-		authCfg.RequiresAuth(pluralResourceName, "PUT") ||
-		authCfg.RequiresAuth(pluralResourceName, "DELETE"))
-
-	routesSignature := "router fiber.Router, db database.Database, paginationLimit, paginationMaxLimit int, pluginRegistry *plugin.PluginRegistry"
-
-	authMiddlewareSetup := ""
-	if needsAuthContext {
-		authMiddlewareSetup = `
-	var authMiddleware fiber.Handler
-	if authPlugin, ok := pluginRegistry.Get("auth"); ok {
-		authMiddleware = authPlugin.Handler()
+func needsAuthForAnyEndpoint(authCfg *AuthConfig, resourceName string) bool {
+	if authCfg == nil {
+		return false
 	}
-`
-	}
+	return authCfg.RequiresAuth(resourceName, "GET") ||
+		authCfg.RequiresAuth(resourceName, "POST") ||
+		authCfg.RequiresAuth(resourceName, "PUT") ||
+		authCfg.RequiresAuth(resourceName, "DELETE")
+}
 
-	hasUserIdField := false
+func hasFieldNamed(fields []StructField, fieldName string) bool {
 	for _, field := range fields {
-		if field.Name == "UserId" {
-			hasUserIdField = true
-			break
+		if field.Name == fieldName {
+			return true
 		}
 	}
+	return false
+}
 
-	contextFunc := "c.Context()"
-	if needsAuthContext || hasUserIdField {
-		contextFunc = "auth.Context(c)"
-	}
-
-	userIdAutoPopulate := ""
-	if hasUserIdField {
-		userIdAutoPopulate = `
-	// Auto-populate user_id from authenticated user
-	if user := auth.GetAuthenticatedUser(c); user != nil {
-		item.UserId = &user.UserID
-	}
-`
-	}
-
-	conversionFuncs := generateConversionFunctions(structName, fields)
-
-	// Generate field mapping from JSON field names to DB column names
+func generateFieldMapping(fields []StructField) string {
 	var fieldMappingPairs []string
 	for _, field := range fields {
 		if field.DBTag != "" && field.JSONTag != "" {
@@ -108,21 +75,21 @@ func generateResourceFromModel(structName string, fields []StructField, authCfg 
 			fieldMappingPairs = append(fieldMappingPairs, fmt.Sprintf(`"%s": "%s"`, field.JSONTag, field.DBTag))
 		}
 	}
-	fieldMappingStr := strings.Join(fieldMappingPairs, ", ")
+	return strings.Join(fieldMappingPairs, ", ")
+}
 
+func checkHooksExist(lowerStructName string) bool {
 	projectRoot, _ := findProjectRoot()
 	hookFilePath := filepath.Join(projectRoot, "hooks", lowerStructName+".go")
-	hasHooks := false
 	if _, err := os.Stat(hookFilePath); err == nil {
-		hasHooks = true
+		return true
 	}
+	return false
+}
 
-	moduleName := getModuleName()
-	cfg, _ := LoadConfig()
-	_, _ = findProjectRoot()
-
-	modelsImport := moduleName
-	dtosImport := moduleName
+func buildImportPaths(moduleName string, cfg *config.Config) (modelsImport, dtosImport string) {
+	modelsImport = moduleName
+	dtosImport = moduleName
 
 	if cfg.Codegen.Output.Models != "models" && cfg.Codegen.Output.Models != "" {
 		modelsPath := strings.TrimPrefix(cfg.Codegen.Output.Models, "./")
@@ -135,7 +102,10 @@ func generateResourceFromModel(structName string, fields []StructField, authCfg 
 
 	modelsImport = strings.TrimSuffix(modelsImport, "/models") + "/models"
 	dtosImport = strings.TrimSuffix(dtosImport, "/dtos") + "/dtos"
+	return
+}
 
+func generateImportsSection(dtosImport, modelsImport, moduleName string, needsAuthContext, hasUserIdField, hasHooks bool) string {
 	importsSection := fmt.Sprintf(`import (
 	"net/url"
 
@@ -162,6 +132,60 @@ func generateResourceFromModel(structName string, fields []StructField, authCfg 
 	}
 	importsSection += `
 )`
+	return importsSection
+}
+
+func generateResourceFromModel(structName string, fields []StructField, authCfg *AuthConfig) string {
+	resourceName := strings.ToLower(structName)
+	lowerStructName := strings.ToLower(structName)
+	pluralResourceName := Pluralize(resourceName)
+
+	listRoute := generateRouteWithAuth("Get", pluralResourceName, "res.List", pluralResourceName, "GET", authCfg)
+	getRoute := generateRouteWithAuth("Get", pluralResourceName+"/:id", "res.Get", pluralResourceName, "GET", authCfg)
+	postRoute := generateRouteWithAuth("Post", pluralResourceName, "res.Create", pluralResourceName, "POST", authCfg)
+	putRoute := generateRouteWithAuth("Put", pluralResourceName+"/:id", "res.Update", pluralResourceName, "PUT", authCfg)
+	deleteRoute := generateRouteWithAuth("Delete", pluralResourceName+"/:id", "res.Delete", pluralResourceName, "DELETE", authCfg)
+
+	needsAuthContext := needsAuthForAnyEndpoint(authCfg, pluralResourceName)
+
+	routesSignature := "router fiber.Router, db database.Database, paginationLimit, paginationMaxLimit int, pluginRegistry *plugin.PluginRegistry"
+
+	authMiddlewareSetup := ""
+	if needsAuthContext {
+		authMiddlewareSetup = `
+	var authMiddleware fiber.Handler
+	if authPlugin, ok := pluginRegistry.Get("auth"); ok {
+		authMiddleware = authPlugin.Handler()
+	}
+`
+	}
+
+	hasUserIdField := hasFieldNamed(fields, "UserId")
+
+	contextFunc := "c.Context()"
+	if needsAuthContext || hasUserIdField {
+		contextFunc = "auth.Context(c)"
+	}
+
+	userIdAutoPopulate := ""
+	if hasUserIdField {
+		userIdAutoPopulate = `
+	// Auto-populate user_id from authenticated user
+	if user := auth.GetAuthenticatedUser(c); user != nil {
+		item.UserId = &user.UserID
+	}
+`
+	}
+
+	conversionFuncs := generateConversionFunctions(structName, fields)
+	fieldMappingStr := generateFieldMapping(fields)
+	hasHooks := checkHooksExist(lowerStructName)
+
+	moduleName := getModuleName()
+	cfg, _ := LoadConfig()
+
+	modelsImport, dtosImport := buildImportPaths(moduleName, cfg)
+	importsSection := generateImportsSection(dtosImport, modelsImport, moduleName, needsAuthContext, hasUserIdField, hasHooks)
 
 	crudInit := fmt.Sprintf("crud.New[models.%s](db)", structName)
 	if hasHooks {
@@ -393,36 +417,42 @@ func (r *%sResource) Delete(c *fiber.Ctx) error {
 		contextFunc)
 }
 
+func shouldIncludeInDTO(field StructField) bool {
+	return field.DTOTag != "-" && field.DTOTag != "write"
+}
+
+func shouldIncludeInCreateUpdate(field StructField) bool {
+	dbTag := strings.ToLower(field.DBTag)
+	if dbTag == FieldID || dbTag == FieldCreatedAt || dbTag == FieldUpdatedAt {
+		return false
+	}
+	return field.DTOTag != "-" && field.DTOTag != "read"
+}
+
+func generateModelToDTOFields(fields []StructField) string {
+	var builder strings.Builder
+	for _, field := range fields {
+		if shouldIncludeInDTO(field) {
+			builder.WriteString(fmt.Sprintf("\t\t%s: m.%s,\n", field.Name, field.Name))
+		}
+	}
+	return builder.String()
+}
+
+func generateCreateUpdateFields(fields []StructField) string {
+	var builder strings.Builder
+	for _, field := range fields {
+		if shouldIncludeInCreateUpdate(field) {
+			builder.WriteString(fmt.Sprintf("\t\t%s: dto.%s,\n", field.Name, field.Name))
+		}
+	}
+	return builder.String()
+}
+
 func generateConversionFunctions(structName string, fields []StructField) string {
-	var modelToDTOFields strings.Builder
-	for _, field := range fields {
-		if field.DTOTag == "-" || field.DTOTag == "write" {
-			continue
-		}
-		modelToDTOFields.WriteString(fmt.Sprintf("\t\t%s: m.%s,\n", field.Name, field.Name))
-	}
-
-	var createDTOToModelFields strings.Builder
-	for _, field := range fields {
-		dbTag := strings.ToLower(field.DBTag)
-		if dbTag != FieldID && dbTag != FieldCreatedAt && dbTag != FieldUpdatedAt {
-			if field.DTOTag == "-" || field.DTOTag == "read" {
-				continue
-			}
-			createDTOToModelFields.WriteString(fmt.Sprintf("\t\t%s: dto.%s,\n", field.Name, field.Name))
-		}
-	}
-
-	var updateDTOToModelFields strings.Builder
-	for _, field := range fields {
-		dbTag := strings.ToLower(field.DBTag)
-		if dbTag != FieldID && dbTag != FieldCreatedAt && dbTag != FieldUpdatedAt {
-			if field.DTOTag == "-" || field.DTOTag == "read" {
-				continue
-			}
-			updateDTOToModelFields.WriteString(fmt.Sprintf("\t\t%s: dto.%s,\n", field.Name, field.Name))
-		}
-	}
+	modelToDTOFields := generateModelToDTOFields(fields)
+	createDTOToModelFields := generateCreateUpdateFields(fields)
+	updateDTOToModelFields := generateCreateUpdateFields(fields)
 
 	lowerStructName := strings.ToLower(structName)
 	return fmt.Sprintf(`func modelTo%sDTO(m models.%s) dtos.%sDTO {
@@ -439,7 +469,7 @@ func %sUpdateDTOToModel(dto dtos.%sUpdateDTO) models.%s {
 	return models.%s{
 %s	}
 }
-`, structName, structName, structName, structName, modelToDTOFields.String(),
-		lowerStructName, structName, structName, structName, createDTOToModelFields.String(),
-		lowerStructName, structName, structName, structName, updateDTOToModelFields.String())
+`, structName, structName, structName, structName, modelToDTOFields,
+		lowerStructName, structName, structName, structName, createDTOToModelFields,
+		lowerStructName, structName, structName, structName, updateDTOToModelFields)
 }
