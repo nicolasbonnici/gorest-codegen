@@ -6,7 +6,7 @@ toolchain go1.26.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.13
-	github.com/nicolasbonnici/gorest v0.5.4
+	github.com/nicolasbonnici/gorest v0.5.5
 	golang.org/x/text v0.36.0
 )
 
@@ -35,5 +35,5 @@ require (
 	modernc.org/libc v1.72.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.49.1 // indirect
+	modernc.org/sqlite v1.50.0 // indirect
 )
