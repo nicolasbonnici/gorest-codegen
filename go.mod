@@ -6,8 +6,8 @@ toolchain go1.26.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.13
-	github.com/nicolasbonnici/gorest v0.5.7
-	golang.org/x/text v0.36.0
+	github.com/nicolasbonnici/gorest v0.5.8
+	golang.org/x/text v0.37.0
 )
 
 require (
@@ -30,9 +30,9 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.71.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.72.2 // indirect
+	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.50.0 // indirect
