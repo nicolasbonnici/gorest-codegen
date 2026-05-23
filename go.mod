@@ -6,7 +6,7 @@ toolchain go1.26.0
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.13
-	github.com/nicolasbonnici/gorest v0.5.11
+	github.com/nicolasbonnici/gorest v0.5.12
 	golang.org/x/text v0.37.0
 )
 
