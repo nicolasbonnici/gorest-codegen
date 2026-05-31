@@ -210,7 +210,7 @@ func generateProcessorResourceFromModel(structName string, fields []StructField,
 	"%s"
 	"%s"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/nicolasbonnici/gorest/crud"
 	"github.com/nicolasbonnici/gorest/database"
 	"github.com/nicolasbonnici/gorest/plugin"
@@ -283,7 +283,7 @@ func Register%sRoutes(%s) {
 // @Produce json,application/ld+json
 // @Success 200 {object} pagination.HydraCollection
 // @Router /%s [get]
-func (r *%sResource) List(c *fiber.Ctx) error {
+func (r *%sResource) List(c fiber.Ctx) error {
 	return r.processor.GetAll(c)
 }
 
@@ -294,7 +294,7 @@ func (r *%sResource) List(c *fiber.Ctx) error {
 // @Param id path string true "ID"
 // @Success 200 {object} dtos.%sDTO
 // @Router /%s/{id} [get]
-func (r *%sResource) Get(c *fiber.Ctx) error {
+func (r *%sResource) Get(c fiber.Ctx) error {
 	return r.processor.GetByID(c)
 }
 
@@ -306,7 +306,7 @@ func (r *%sResource) Get(c *fiber.Ctx) error {
 // @Param input body dtos.%sCreateDTO true "New %s"
 // @Success 201 {object} dtos.%sDTO
 // @Router /%s [post]
-func (r *%sResource) Create(c *fiber.Ctx) error {
+func (r *%sResource) Create(c fiber.Ctx) error {
 	return r.processor.Create(c)
 }
 
@@ -319,7 +319,7 @@ func (r *%sResource) Create(c *fiber.Ctx) error {
 // @Param input body dtos.%sUpdateDTO true "Updated %s"
 // @Success 200 {object} dtos.%sDTO
 // @Router /%s/{id} [put]
-func (r *%sResource) Update(c *fiber.Ctx) error {
+func (r *%sResource) Update(c fiber.Ctx) error {
 	return r.processor.Update(c)
 }
 
@@ -329,7 +329,7 @@ func (r *%sResource) Update(c *fiber.Ctx) error {
 // @Param id path string true "ID"
 // @Success 204
 // @Router /%s/{id} [delete]
-func (r *%sResource) Delete(c *fiber.Ctx) error {
+func (r *%sResource) Delete(c fiber.Ctx) error {
 	return r.processor.Delete(c)
 }
 `,

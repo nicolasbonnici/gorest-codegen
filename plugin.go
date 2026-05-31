@@ -1,7 +1,7 @@
 package codegen
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/nicolasbonnici/gorest/config"
 	"github.com/nicolasbonnici/gorest/database"
 	"github.com/nicolasbonnici/gorest/plugin"
@@ -37,7 +37,7 @@ func (p *CodegenPlugin) Initialize(cfg map[string]any) error {
 
 // Handler returns a no-op middleware handler (codegen is CLI-only)
 func (p *CodegenPlugin) Handler() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		return c.Next()
 	}
 }
