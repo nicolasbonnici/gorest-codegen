@@ -14,11 +14,15 @@ linters:
     - staticcheck
     - typecheck
     - unused
-  disable:
-    - gocyclo  # We run this separately with custom threshold
-    - misspell # We run this separately
+    - gofmt
+    - misspell
+    - gocyclo
 
 linters-settings:
+  gofmt:
+    simplify: true
+  gocyclo:
+    min-complexity: 45
   errcheck:
     # Don't check error in defer
     check-blank: false
