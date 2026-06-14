@@ -6,7 +6,7 @@ toolchain go1.26.4
 
 require (
 	github.com/gofiber/fiber/v3 v3.3.0
-	github.com/nicolasbonnici/gorest v0.5.20
+	github.com/nicolasbonnici/gorest v0.5.21
 	golang.org/x/text v0.38.0
 )
 
@@ -36,7 +36,7 @@ require (
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.73.0 // indirect
+	modernc.org/libc v1.73.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.52.0 // indirect
