@@ -6,8 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/nicolasbonnici/gorest/config"
+)
+
+var (
+	configMu    sync.Mutex
+	configCache = map[string]*config.Config{}
 )
 
 func LoadConfig() (*config.Config, error) {
@@ -16,7 +22,18 @@ func LoadConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to find project root: %w", err)
 	}
 
-	return config.Load(projectRoot)
+	configMu.Lock()
+	defer configMu.Unlock()
+	if cfg, ok := configCache[projectRoot]; ok {
+		return cfg, nil
+	}
+
+	cfg, err := config.Load(projectRoot)
+	if err != nil {
+		return nil, err
+	}
+	configCache[projectRoot] = cfg
+	return cfg, nil
 }
 
 func GetModelsPath(cfg *config.Config) (string, error) {
@@ -67,12 +84,29 @@ func GetRoutesPath(cfg *config.Config) (string, error) {
 	return filepath.Join(projectRoot, cfg.Codegen.Output.Resources, "routes.go"), nil
 }
 
+var (
+	moduleNameMu    sync.Mutex
+	moduleNameCache = map[string]string{}
+)
+
 func getModuleName() string {
 	projectRoot, err := findProjectRoot()
 	if err != nil {
 		return "github.com/nicolasbonnici/gorest"
 	}
 
+	moduleNameMu.Lock()
+	defer moduleNameMu.Unlock()
+	if name, ok := moduleNameCache[projectRoot]; ok {
+		return name
+	}
+
+	name := readModuleName(projectRoot)
+	moduleNameCache[projectRoot] = name
+	return name
+}
+
+func readModuleName(projectRoot string) string {
 	goModPath := filepath.Join(projectRoot, "go.mod")
 	file, err := os.Open(goModPath)
 	if err != nil {

@@ -6,9 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 func toJSONCamelCase(s string) string {
@@ -18,7 +15,8 @@ func toJSONCamelCase(s string) string {
 
 	if strings.Contains(s, "_") {
 		parts := strings.Split(s, "_")
-		caser := cases.Title(language.English)
+		caser, release := borrowTitleCaser()
+		defer release()
 		result := strings.ToLower(parts[0])
 		for i := 1; i < len(parts); i++ {
 			result += caser.String(parts[i])
@@ -93,7 +91,8 @@ type %sUpdateDTO struct {
 }
 
 func generateDTOFields(fields []StructField) string {
-	var result strings.Builder
+	result, release := borrowBuilder()
+	defer release()
 	for _, field := range fields {
 		if field.DTOTag == "-" || field.DTOTag == "write" {
 			continue
@@ -109,13 +108,14 @@ func generateDTOFields(fields []StructField) string {
 			jsonTag = toJSONCamelCase(field.Name)
 		}
 
-		result.WriteString(fmt.Sprintf("\t%s %s `json:\"%s\"`\n", field.Name, typeStr, jsonTag))
+		fmt.Fprintf(result, "\t%s %s `json:\"%s\"`\n", field.Name, typeStr, jsonTag)
 	}
 	return result.String()
 }
 
 func generateCreateDTOFields(fields []StructField) string {
-	var result strings.Builder
+	result, release := borrowBuilder()
+	defer release()
 	for _, field := range fields {
 		dbTag := strings.ToLower(field.DBTag)
 		if dbTag == FieldID || dbTag == FieldCreatedAt || dbTag == FieldUpdatedAt {
@@ -136,13 +136,14 @@ func generateCreateDTOFields(fields []StructField) string {
 			jsonTag = toJSONCamelCase(field.Name)
 		}
 
-		result.WriteString(fmt.Sprintf("\t%s %s `json:\"%s\"`\n", field.Name, typeStr, jsonTag))
+		fmt.Fprintf(result, "\t%s %s `json:\"%s\"`\n", field.Name, typeStr, jsonTag)
 	}
 	return result.String()
 }
 
 func generateUpdateDTOFields(fields []StructField) string {
-	var result strings.Builder
+	result, release := borrowBuilder()
+	defer release()
 	for _, field := range fields {
 		dbTag := strings.ToLower(field.DBTag)
 		if dbTag == FieldID || dbTag == FieldCreatedAt || dbTag == FieldUpdatedAt {
@@ -163,7 +164,7 @@ func generateUpdateDTOFields(fields []StructField) string {
 			jsonTag = toJSONCamelCase(field.Name)
 		}
 
-		result.WriteString(fmt.Sprintf("\t%s %s `json:\"%s\"`\n", field.Name, typeStr, jsonTag))
+		fmt.Fprintf(result, "\t%s %s `json:\"%s\"`\n", field.Name, typeStr, jsonTag)
 	}
 	return result.String()
 }

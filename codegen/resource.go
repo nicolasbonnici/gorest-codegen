@@ -118,20 +118,22 @@ func shouldIncludeInCreateUpdate(field StructField) bool {
 }
 
 func generateModelToDTOFields(fields []StructField) string {
-	var builder strings.Builder
+	builder, release := borrowBuilder()
+	defer release()
 	for _, field := range fields {
 		if shouldIncludeInDTO(field) {
-			builder.WriteString(fmt.Sprintf("\t\t%s: m.%s,\n", field.Name, field.Name))
+			fmt.Fprintf(builder, "\t\t%s: m.%s,\n", field.Name, field.Name)
 		}
 	}
 	return builder.String()
 }
 
 func generateCreateUpdateFields(fields []StructField) string {
-	var builder strings.Builder
+	builder, release := borrowBuilder()
+	defer release()
 	for _, field := range fields {
 		if shouldIncludeInCreateUpdate(field) {
-			builder.WriteString(fmt.Sprintf("\t\t%s: dto.%s,\n", field.Name, field.Name))
+			fmt.Fprintf(builder, "\t\t%s: dto.%s,\n", field.Name, field.Name)
 		}
 	}
 	return builder.String()

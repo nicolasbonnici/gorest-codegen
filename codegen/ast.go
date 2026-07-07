@@ -2,8 +2,6 @@ package codegen
 
 import (
 	"go/ast"
-	"go/parser"
-	"go/token"
 	"log"
 	"strings"
 )
@@ -18,15 +16,14 @@ type StructField struct {
 }
 
 func parseStructs(path string) []string {
-	fs := token.NewFileSet()
-	node, err := parser.ParseFile(fs, path, nil, parser.AllErrors)
+	entry, err := loadASTEntry(path)
 	if err != nil {
 		log.Printf("parse error in %s: %v", path, err)
 		return nil
 	}
 
 	structs := []string{}
-	for _, decl := range node.Decls {
+	for _, decl := range entry.file.Decls {
 		gen, ok := decl.(*ast.GenDecl)
 		if !ok {
 			continue
@@ -102,13 +99,15 @@ func processStructField(field *ast.Field) *StructField {
 }
 
 func extractStructFields(path string, structName string) []StructField {
-	fs := token.NewFileSet()
-	node, err := parser.ParseFile(fs, path, nil, parser.AllErrors)
+	entry, err := loadASTEntry(path)
 	if err != nil {
 		log.Printf("parse error in %s: %v", path, err)
 		return nil
 	}
+	return entry.structFields(structName)
+}
 
+func fieldsForStruct(node *ast.File, structName string) []StructField {
 	var fields []StructField
 	for _, decl := range node.Decls {
 		gen, ok := decl.(*ast.GenDecl)
@@ -159,8 +158,7 @@ func extractStructFieldsFromAST(st *ast.StructType) []StructField {
 }
 
 func extractDTOsFromResourceFile(path string) map[string]DTOSchema {
-	fs := token.NewFileSet()
-	node, err := parser.ParseFile(fs, path, nil, parser.AllErrors)
+	entry, err := loadASTEntry(path)
 	if err != nil {
 		log.Printf("parse error in %s: %v", path, err)
 		return nil
@@ -168,7 +166,7 @@ func extractDTOsFromResourceFile(path string) map[string]DTOSchema {
 
 	dtos := make(map[string]DTOSchema)
 
-	for _, decl := range node.Decls {
+	for _, decl := range entry.file.Decls {
 		gen, ok := decl.(*ast.GenDecl)
 		if !ok {
 			continue

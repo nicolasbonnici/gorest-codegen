@@ -9,8 +9,6 @@ import (
 	"strings"
 
 	"github.com/nicolasbonnici/gorest/database"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 type TableSchema struct {
@@ -200,7 +198,8 @@ func pgToGoType(pgType string, nullable bool) string {
 
 func toPascalCase(s string) string {
 	parts := strings.Split(s, "_")
-	caser := cases.Title(language.English)
+	caser, release := borrowTitleCaser()
+	defer release()
 	for i, p := range parts {
 		parts[i] = caser.String(p)
 	}
@@ -213,7 +212,8 @@ func toCamelCase(s string) string {
 		return s
 	}
 
-	caser := cases.Title(language.English)
+	caser, release := borrowTitleCaser()
+	defer release()
 	result := parts[0]
 	for i := 1; i < len(parts); i++ {
 		result += caser.String(parts[i])
