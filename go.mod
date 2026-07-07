@@ -7,7 +7,7 @@ toolchain go1.26.4
 require (
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/nicolasbonnici/gorest v0.6.0
-	golang.org/x/text v0.38.0
+	golang.org/x/text v0.39.0
 )
 
 require (
@@ -15,7 +15,7 @@ require (
 	github.com/andybalholm/brotli v1.2.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-sql-driver/mysql v1.10.0 // indirect
-	github.com/gofiber/schema v1.8.0 // indirect
+	github.com/gofiber/schema v1.8.1 // indirect
 	github.com/gofiber/utils/v2 v2.1.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
