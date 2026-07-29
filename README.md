@@ -1,7 +1,8 @@
 # GoREST Codegen Plugin
 
 [![CI](https://github.com/nicolasbonnici/gorest-codegen/actions/workflows/ci.yml/badge.svg)](https://github.com/nicolasbonnici/gorest-codegen/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nicolasbonnici/gorest-codegen)](https://goreportcard.com/report/github.com/nicolasbonnici/gorest-codegen)
+[![Go Reference](https://pkg.go.dev/badge/github.com/nicolasbonnici/gorest-codegen.svg)](https://pkg.go.dev/github.com/nicolasbonnici/gorest-codegen)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/nicolasbonnici/gorest-codegen)](https://github.com/nicolasbonnici/gorest-codegen/blob/HEAD/go.mod)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Code generation plugin for [GoREST](https://github.com/nicolasbonnici/gorest) that automatically generates models, REST resources, DTOs, and OpenAPI schemas from your database schema.
