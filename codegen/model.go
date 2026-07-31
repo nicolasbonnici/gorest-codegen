@@ -116,7 +116,7 @@ func GenerateStructs(tables map[string]TableSchema) {
 			}
 
 			jsonTag := fmt.Sprintf("`json:\"%s%s\" db:\"%s\"`", toCamelCase(col.Name), omitempty, col.Name)
-			b.WriteString(fmt.Sprintf("\t%s %s %s\n", fieldName, fieldType, jsonTag))
+			fmt.Fprintf(&b, "\t%s %s %s\n", fieldName, fieldType, jsonTag)
 		}
 		b.WriteString("}\n")
 		b.WriteString("\n")
@@ -153,8 +153,8 @@ func GenerateOpenAPI(tables map[string]TableSchema) {
 	for _, table := range tables {
 		singularTable := singularize(table.TableName)
 		resource := toPascalCase(singularTable)
-		b.WriteString(fmt.Sprintf("// %sResource defines OpenAPI schema and endpoints for %s\n", resource, table.TableName))
-		b.WriteString(fmt.Sprintf("type %sResource struct {}\n\n", resource))
+		fmt.Fprintf(&b, "// %sResource defines OpenAPI schema and endpoints for %s\n", resource, table.TableName)
+		fmt.Fprintf(&b, "type %sResource struct {}\n\n", resource)
 	}
 
 	if err := os.WriteFile(filePath, []byte(b.String()), 0644); err != nil {
