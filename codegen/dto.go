@@ -51,7 +51,7 @@ func generateDTOForStruct(dtosDir string, structName string) {
 	fields := extractStructFields(modelPath, structName)
 
 	code := generateDTOsFromModel(structName, fields)
-	if err := os.WriteFile(dtoFile, []byte(code), 0644); err != nil {
+	if err := writeGeneratedFile(dtoFile, code); err != nil {
 		log.Fatalf("failed to write DTOs for %s: %v", structName, err)
 	}
 	log.Printf("📝 Generated DTOs for model: %s → %s", structName, dtoFile)

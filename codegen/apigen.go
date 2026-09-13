@@ -104,7 +104,7 @@ func RegisterGeneratedRoutes(app *fiber.App, db database.Database, paginationLim
 %s}
 `, registrations.String())
 
-	if err := os.WriteFile(routesPath, []byte(code), 0644); err != nil {
+	if err := writeGeneratedFile(routesPath, code); err != nil {
 		log.Fatalf("failed to write routes.go: %v", err)
 	}
 	log.Printf("🔀 Generated route registration → %s", routesPath)

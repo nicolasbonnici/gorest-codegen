@@ -45,3 +45,14 @@ func findProjectRoot() (string, error) {
 		dir = parent
 	}
 }
+
+// generatedFilePerm is the mode for every emitted file. Generated Go sources
+// carry no secrets and have to stay readable by whatever user later builds the
+// tree, so the group/other read bits are deliberate rather than an oversight.
+const generatedFilePerm os.FileMode = 0644
+
+// writeGeneratedFile centralises the emit so the permission choice above is
+// stated once instead of at each call site.
+func writeGeneratedFile(path, code string) error {
+	return os.WriteFile(path, []byte(code), generatedFilePerm) // #nosec G306
+}

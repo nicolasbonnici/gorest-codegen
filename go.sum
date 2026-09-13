@@ -41,8 +41,8 @@ github.com/molecule-man/go-brrr v1.1.0 h1:rLBGSXA393y+5ttCBLkW34CHESop5tahrOFxVv
 github.com/molecule-man/go-brrr v1.1.0/go.mod h1:7ybW6/7gA3oKY45jOfVNjSJDtrr6ea4tzbsTkjmQDC4=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=
 github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
-github.com/nicolasbonnici/gorest v0.6.18 h1:kyD5yzFjoKTRnVZT1qKEU29SKWueLQ3kTPb59GMhDkY=
-github.com/nicolasbonnici/gorest v0.6.18/go.mod h1:8FZXHyE0kXokNKUeUsquOEuu9ARRlfy3fXkhVQ+sWrQ=
+github.com/nicolasbonnici/gorest v0.7.0 h1:XQpzyswHkhQWqlfOsk6WQQFB1+8gMXoxSe9yZmc+fr4=
+github.com/nicolasbonnici/gorest v0.7.0/go.mod h1:Rb8zFy5ywgIXfFTpRcDUwAkSuADCriLF/ZlsxWlUCQg=
 github.com/philhofer/fwd v1.2.0 h1:e6DnBTl7vGY+Gz322/ASL4Gyp1FspeMvx1RNDoToZuM=
 github.com/philhofer/fwd v1.2.0/go.mod h1:RqIHx9QI14HlwKwm98g9Re5prTQ6LdeRQn+gXJFxsJM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=

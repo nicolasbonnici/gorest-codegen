@@ -30,3 +30,6 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Per-developer Claude Code permissions; can capture dev tokens.
+.claude/settings.local.json
