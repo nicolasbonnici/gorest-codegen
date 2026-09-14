@@ -40,7 +40,7 @@ func generateResourceForStruct(apiDir string, structName string, authCfg *AuthCo
 	fields := extractStructFields(modelPath, structName)
 
 	code := generateProcessorResourceFromModel(structName, fields, authCfg)
-	if err := os.WriteFile(resourceFile, []byte(code), 0644); err != nil {
+	if err := writeGeneratedFile(resourceFile, code); err != nil {
 		log.Fatalf("failed to write resource for %s: %v", structName, err)
 	}
 	log.Printf("🧩 Generated processor-based API resource for model: %s → %s", structName, resourceFile)

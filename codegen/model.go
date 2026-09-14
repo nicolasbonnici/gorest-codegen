@@ -124,7 +124,7 @@ func GenerateStructs(tables map[string]TableSchema) {
 		b.WriteString("	return \"" + table.TableName + "\" \n")
 		b.WriteString("}\n")
 
-		if err := os.WriteFile(filePath, []byte(b.String()), 0644); err != nil {
+		if err := writeGeneratedFile(filePath, b.String()); err != nil {
 			log.Fatalf("Failed to write file %s: %v", filePath, err)
 		}
 		fmt.Printf("✅ Generated struct for table: %s → %s\n", table.TableName, filePath)
@@ -157,7 +157,7 @@ func GenerateOpenAPI(tables map[string]TableSchema) {
 		fmt.Fprintf(&b, "type %sResource struct {}\n\n", resource)
 	}
 
-	if err := os.WriteFile(filePath, []byte(b.String()), 0644); err != nil {
+	if err := writeGeneratedFile(filePath, b.String()); err != nil {
 		log.Fatalf("failed to write OpenAPI file: %v", err)
 	}
 	fmt.Printf("✅ Generated OpenAPI resource stubs → %s\n", filePath)
